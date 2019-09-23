@@ -3,6 +3,6 @@ import Header from './Header';
 import List from './List';
 import Record from './Record';
 
-export default {
+export {
     Group, Header, List, Record
 }
