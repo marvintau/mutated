@@ -1,10 +1,11 @@
 {
   "name": "mutated",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "quite the opposite of immutable",
-  "main": "index.js",
+  "main": "./dist/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "webpack",
   },
   "author": "Yue Marvin Tao",
   "license": "MIT",
@@ -15,5 +16,14 @@
   "bugs": {
     "url": "https://github.com/marvintau/mutated/issues"
   },
-  "homepage": "https://github.com/marvintau/mutated#readme"
+  "homepage": "https://github.com/marvintau/mutated#readme",
+  "devDependencies": {
+    "@babel/plugin-proposal-class-properties": "^7.5.5",
+    "@babel/preset-env": "^7.6.0",
+    "babel-loader": "^8.0.6",
+    "webpack": "^4.40.2"
+  },
+  "dependencies": {
+    "@babel/core": "^7.6.0"
+  }
 }
