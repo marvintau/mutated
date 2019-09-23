@@ -7,5 +7,13 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Yue Marvin Tao",
-  "license": "MIT"
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/marvintau/mutated.git"
+  },
+  "bugs": {
+    "url": "https://github.com/marvintau/mutated/issues"
+  },
+  "homepage": "https://github.com/marvintau/mutated#readme"
 }
