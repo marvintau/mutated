@@ -1,8 +1,4 @@
-import Group from './Group';
-import Header from './Header';
-import List from './List';
-import Record from './Record';
-
-export {
-    Group, Header, List, Record
-}
+export {default as Group} from './Group';
+export {default as Header} from './Header';
+export {default as List} from './List';
+export {default as Record} from './Record';
