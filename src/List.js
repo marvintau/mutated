@@ -22,7 +22,7 @@ class List extends Array {
             group[key].push(this[i]);
         }
 
-        return new Group(desc, group, style);
+        return new Group(group, desc, style);
     }
 
     tros(func, order=1){
