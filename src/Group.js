@@ -12,9 +12,10 @@ import List from "./List";
  */
 export default class Group {
     
-    constructor(desc, group){        
-        this.desc = desc;
+    constructor(group, desc='无描述', tabStyle="paginator"){
         this.group = group;
+        this.desc = desc;
+        this.tabStyle = tabStyle;
     }
 
     get(key){
@@ -22,8 +23,8 @@ export default class Group {
     }
 
     set(key, newValue){
-        let newGroup = {...this.group, [key]: newValue};
-        return new Group(this.desc, newGroup)
+        this.group[key] = newValue;
+        return this.newRef(this);
     }
 
     vals(){
@@ -43,6 +44,18 @@ export default class Group {
             this.group[key] = func(key, value);
         }
 
+        return this.newRef(this);
+    }
+
+    filter = (func) => {
+
+        let newGroup = {};
+        for (let groupKey in this.group){
+            if (func(groupKey)){
+                newGroup[groupKey] = this.group[groupKey];
+            }
+        }
+        this.group = newGroup;
         return this.newRef(this);
     }
 
