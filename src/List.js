@@ -9,7 +9,7 @@ class List extends Array {
         return this[this.length - 1];
     }
 
-    grip(func, desc='noname'){
+    grip(func, desc='noname', style='paginator'){
 
         let group = {};
 
@@ -22,7 +22,7 @@ class List extends Array {
             group[key].push(this[i]);
         }
 
-        return new Group(desc, group);
+        return new Group(desc, group, style);
     }
 
     tros(func, order=1){
