@@ -81,6 +81,7 @@ class List extends Array {
             while (descendants.length > 0) {
                 let entry = descendants.shift();
                 for (let maybeParent of ancestors) if (gatherFunc(entry, maybeParent)) {
+                    maybeParent.tabs = undefined;
                     maybeParent.subs.push(entry);
                 }
             }
