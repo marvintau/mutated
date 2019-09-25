@@ -1,6 +1,6 @@
 {
   "name": "mutated",
-  "version": "0.0.11",
+  "version": "0.0.12",
   "description": "quite the opposite of immutable",
   "main": "./dist/index.js",
   "scripts": {

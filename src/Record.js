@@ -75,7 +75,7 @@ class Record {
 
 
     tab(data, head){
-        this.tabs = new Sheet(data, {head});
+        this.tabs = {head, data, tableAttr:{}};
         return this.newRef(this);
     }
 
