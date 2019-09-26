@@ -18,12 +18,12 @@
   },
   "homepage": "https://github.com/marvintau/mutated#readme",
   "devDependencies": {
+    "@babel/core": "^7.6.0",
     "@babel/plugin-proposal-class-properties": "^7.5.5",
     "@babel/preset-env": "^7.6.0",
     "babel-loader": "^8.0.6",
+    "terser-webpack-plugin": "^2.1.0",
     "webpack": "^4.40.2"
   },
-  "dependencies": {
-    "@babel/core": "^7.6.0"
-  }
+  "dependencies": {}
 }
