@@ -149,7 +149,6 @@ class List extends Array {
     }
 
     newRef(self){
-        console.log(self)
         let Constructor = self.constructor;
         return Object.assign(new Constructor(), self);
     }
