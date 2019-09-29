@@ -36,7 +36,7 @@ export default class Header extends List {
 
         for (let i = 0; i < this.length; i++){
             let key = this[i].colKey,
-                type = this[i].type,
+                type = this[i].dataType,
                 mapped = list.map(e => e.get(key));
 
             if (type === 'String'){
