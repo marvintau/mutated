@@ -12,10 +12,15 @@ import List from "./List";
  */
 export default class Group {
     
-    constructor(group, desc='无描述', tabStyle="paginator"){
-        this.group = group;
-        this.desc = desc;
-        this.tabStyle = tabStyle;
+    constructor(group, {desc='无描述', tabStyle="paginator"}={}){
+
+        if (group instanceof Group){
+            Object.assign(this, group);
+        } else {
+            this.group = group;
+            this.desc = desc;
+            this.tabStyle = tabStyle;
+        }
     }
 
     get(key){
@@ -24,7 +29,7 @@ export default class Group {
 
     set(key, newValue){
         this.group[key] = newValue;
-        return this.newRef(this);
+        return new Group(this);
     }
 
     vals(){
@@ -44,7 +49,7 @@ export default class Group {
             this.group[key] = func(key, value);
         }
 
-        return this.newRef(this);
+        return new Group(this);
     }
 
     filter = (func) => {
@@ -56,22 +61,11 @@ export default class Group {
             }
         }
         this.group = newGroup;
-        return this.newRef(this);
+        return new Group(this);
     }
 
     grap() {
-
-        let list = new List(0),
-            vals = this.vals();
-        for (let i = 0; i < vals.length; i++){
-            list.unshift(vals[i]);
-        }
-        return list;
-    }
-
-    newRef(self){
-        let Constructor = self.constructor;
-        return Object.assign(new Constructor(), self);
+        return new List(this.vals().flat());
     }
 
 }

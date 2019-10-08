@@ -1,21 +1,52 @@
 import Group from './Group';
 
-class List extends Array {
-    constructor(...args){
-        super(...args);
+export default class List {
+
+    constructor(array=[]){
+        if(array instanceof List){
+            Object.assign(this, array);
+        } else {
+            this.$array = array;
+        }
     }
 
-    last(){
-        return this[this.length - 1];
+    /**
+     * last
+     * @param {number} backwardIndex 反向索引，会被自动trim到[1, this.length]的范围
+     *                               从而确保最终的值在[0, this.length-1]的范围内。
+     */
+    last(backwardIndex=1){
+        backwardIndex = Math.max(Math.min(backwardIndex, 1), this.length);
+        return this.$array[this.length - backwardIndex];
     }
 
-    grip(func, desc='noname', style='paginator'){
+    len(){
+        return this.$array.length;
+    }
+
+    getArray(){
+        return this.$array;
+    }
+
+    sort(func, order=1){
+        this.$array.sort((a, b) => {
+            let indexA = func(a),
+                indexB = func(b);
+
+            return indexA < indexB ? -order : indexA > indexB ? order : 0;
+        })
+
+        return new List(this);
+    }
+
+
+    grip(func, {desc='noname', style='paginator'}={}){
 
         let group = {};
 
-        for (let i = 0; i < this.length; i++){
+        for (let i = 0; i < this.$array.length; i++){
 
-            let key = func(this[i]);
+            let key = func(this.$array[i]);
             if(!(key in group)){
                 group[key] = new List(0)
             }
@@ -25,21 +56,6 @@ class List extends Array {
         return new Group(group, desc, style);
     }
 
-    tros(func, order=1){
-        if (func === undefined){
-            // quite useful when trying to sort a list of
-            // strings in alphabetic (lexicographical) order.
-            // 
-            // especially when strings are digits, which will
-            // be automatically parsed into numbers when the
-            // comparison function given.
-            this.sort();
-        } else {
-            this.sort((a, b) => (func(a) - func(b))*order);
-        }
-
-        return this.newRef(this);
-    }
 
     uniq(func) {
         
@@ -48,61 +64,47 @@ class List extends Array {
             uniq[func(this[i])] = this[i];
         }
 
-        let list = new List(0);
+        let list = new List();
         for (let key in uniq){
-            list.push(uniq[key]);
+            list.array.push(uniq[key]);
         }
 
         return list;
     }
 
-    dups(func){
-        let list = new List(0);
-
-        for (let i = 0; i < this.length-1; i++){
-            if (func(this[i]) === func(this[i+1])){
-                list.unshift(this[i]);
-            }
-        }
-
-        return list;  
-    }
-
     cascade(layerFunc, gatherFunc) {
 
-        let layers = this.grip(layerFunc).vals();
-        layers.reverse();
+        // grip使用了layerFunc，将列表分为几代（Generation）
+        let layers = this.sort(layerFunc).grip(layerFunc).vals();
 
-        // The descendants are on the head of List, by finding and
-        // getting merged into their ancestors, the ancestors become
-        // new descandants.
-        for (var descendants = layers.shift(); layers.length > 0; descendants = layers.shift()) {
+        // 每相邻的两代之间两两比较，如果没有找到父辈的孩子会被弃掉。
+        for (let descendants = layers.shift(); layers.length > 0; descendants = layers.shift()) {
             let ancestors = layers[0];
             while (descendants.length > 0) {
                 let entry = descendants.shift();
                 for (let maybeParent of ancestors) if (gatherFunc(entry, maybeParent)) {
-                    maybeParent.tabs = undefined;
-                    maybeParent.subs.push(entry);
+                    maybeParent.addChild(entry);
                 }
             }
         }
 
-        return descendants;
+        // 返回祖先一代。
+        return new List(descendants);
     }
 
     flatten(){
 
-        const stack = new List(...this);
-        const res = new List(0);
+        const stack = this.$array.slice();
+        const res = [];
         while (stack.length) {
             const next = stack.shift();
             res.push(next);
-            if (next.subs.length) {
-                stack.push(...next.subs);
+            if (next.$children.len()) {
+                stack.push(...next.getChildrenArray());
             }
         }
 
-        return res;
+        return new List(res);
     }
 
     join(from, {fromCol, thisCol}){
@@ -118,16 +120,18 @@ class List extends Array {
         //    in given column, combine two record
         //    together.
         for (let i = this.length-1; i >= 0; i--){
-            let thisColVal = this[i][thisCol];
+            let thisColVal = this.$array[i][thisCol];
             if(fromDict.has(thisColVal)){
                 Object.assign(this[i], fromDict.get(thisColVal));
             }
         }
+
+        return new List(this);
     }
 
     insert(index, newRec){
-        this.splice(index, 0, newRec);
-        return this.slice();
+        this.array.splice(index, 0, newRec);
+        return new List(this);
     }
 
     swap(index, dir=1){
@@ -140,18 +144,11 @@ class List extends Array {
                 [this[index - 1], this[index]] = [this[index], this[index - 1]];
             }    
         }
-        return this.newRef(this);
+        return new List(this);
     }
 
     remove(index){
         this.splice(index, 1);
-        return this.slice();
-    }
-
-    newRef(self){
-        let Constructor = self.constructor;
-        return Object.assign(new Constructor(), self);
+        return new List(this);
     }
 }
-
-export default List;

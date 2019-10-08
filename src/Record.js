@@ -1,89 +1,44 @@
-import List from './List';
+import List from "./List";
 
-class Record {
-    constructor(cols, spec={}){
-        this.cols = cols;
+export default class Record {
+    
+    constructor(fields, {schema={}, children=new List(), subtable}={}){
 
-        let {subs=new List(0), tabs, attr={}} = spec;
-        this.attr = attr;
-        this.subs = subs;
-        this.tabs = tabs;
-    }
-
-    get(key){
-        return this.cols[key];
+        if (fields instanceof Record){
+            Object.assign(this, fields);
+        } else {
+            this.$fields = {}
+            for (let colKey in schema){
+                let val = fields[colKey] === null ? undefined : fields[colKey];
+                this.$fields[colKey] = new schema[colKey](val);
+            }
+    
+            this.$schema = schema;
+            this.$subtable = subtable;    
+            this.$children = children;
+        }        
     }
 
     set(key, value){
-        this.cols[key] = value;
-        return this.newRef(this);
+        let Cons = this.$schema[key];
+        this.$fields[key] = new Cons(value);
+        return new Record(this);
     }
 
-    setAttr(attrKey, attrValue){
-        this.attr[attrKey] = attrValue;
-        return this.newRef(this);
+    get(key){
+        return this.$fields[key];
     }
 
-    type(typeDict, key){
-        let elem = typeDict.find(e => e.colKey===key);
-        // console.log(key, 'record type');
-        if(elem && elem.attr && elem.attr.type !== undefined){
-            return elem.attr.type;
-        } else {
-            return typeCheck(this.cols[key]);
-        }
+    getChildrenArray(){
+        return this.$children.getArray();
     }
 
-    trim(keys){
-        let newCols = {};
-        for (let key in this.cols){
-            if (keys.indexOf(key) === -1){
-                newCols[key] = this.cols[key];
-            }
-        }
-        this.cols = newCols;
-        return this.newRef(this);
+    addChild(rec){
+        this.$subtable = undefined;
+        this.$children.push(rec);
     }
-
-    pick(keys){
-        let newCols = {};
-        for (let key of keys){
-            if (key in this.cols){
-                newCols[key] = this.cols[key];
-            } else if('oldKey' in key){
-                let {oldKey, newKey} = key;
-                if(oldKey in this.cols){
-                    newCols[newKey] = this.cols[oldKey];
-                }
-            }
-        }
-        this.cols = newCols;
-        return this.newRef(this);
-    }
-
+    
     keys(){
-        return Object.keys(this.cols);
+        return Object.keys(this.$fields);
     }
-
-    toList(head){
-        return new List(...head.map(e => ({...e, value: this.cols[e.colKey]})));
-    }
-
-    toObject(){
-        return Object.assign({}, this.cols);
-    }
-
-
-    tab(data, head){
-        this.tabs = {head, data, tableAttr:{}};
-        return this.newRef(this);
-    }
-
-    newRef(self){
-        let Constructor = self.constructor;
-        return Object.assign(new Constructor(), self);
-    }
-
 }
-
-export default Record;
