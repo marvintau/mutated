@@ -1,12 +1,12 @@
 import Group from './Group';
 
-export default class List {
+export default class List extends Array{
 
-    constructor(array=[]){
-        if(array instanceof List){
-            Object.assign(this, array);
+    constructor(...args){
+        if (args[0] instanceof Array || args[0] instanceof List){
+            super(...args[0]);
         } else {
-            this.$array = array;
+            super(...args);
         }
     }
 
@@ -17,43 +17,34 @@ export default class List {
      */
     last(backwardIndex=1){
         backwardIndex = Math.max(Math.min(backwardIndex, 1), this.length);
-        return this.$array[this.length - backwardIndex];
+        return this[this.length - backwardIndex];
     }
 
-    len(){
-        return this.$array.length;
-    }
-
-    getArray(){
-        return this.$array;
-    }
-
-    sort(func, order=1){
-        this.$array.sort((a, b) => {
+    ordr(func, order=1){
+        this.sort((a, b) => {
             let indexA = func(a),
                 indexB = func(b);
 
             return indexA < indexB ? -order : indexA > indexB ? order : 0;
         })
 
-        return new List(this);
+        return new List(...this);
     }
-
 
     grip(func, {desc='noname', style='paginator'}={}){
 
         let group = {};
 
-        for (let i = 0; i < this.$array.length; i++){
+        for (let i = 0; i < this.length; i++){
 
-            let key = func(this.$array[i]);
+            let key = func(this[i]);
             if(!(key in group)){
                 group[key] = new List(0)
             }
             group[key].push(this[i]);
         }
 
-        return new Group(group, desc, style);
+        return new Group(group, {desc, style});
     }
 
 
@@ -66,19 +57,19 @@ export default class List {
 
         let list = new List();
         for (let key in uniq){
-            list.array.push(uniq[key]);
+            list.push(uniq[key]);
         }
-
         return list;
     }
 
     cascade(layerFunc, gatherFunc) {
 
         // grip使用了layerFunc，将列表分为几代（Generation）
-        let layers = this.sort(layerFunc).grip(layerFunc).vals();
+        let layers = this.ordr(layerFunc).grip(layerFunc).vals().reverse();
 
         // 每相邻的两代之间两两比较，如果没有找到父辈的孩子会被弃掉。
-        for (let descendants = layers.shift(); layers.length > 0; descendants = layers.shift()) {
+        let descendants;
+        for (descendants = layers.shift(); layers.length > 0; descendants = layers.shift()) {
             let ancestors = layers[0];
             while (descendants.length > 0) {
                 let entry = descendants.shift();
@@ -90,18 +81,17 @@ export default class List {
 
         // 返回祖先一代。
         return new List(descendants);
+        // return layers;
     }
 
     flatten(){
 
-        const stack = this.$array.slice();
+        const stack = new List(...this);
         const res = [];
         while (stack.length) {
             const next = stack.shift();
             res.push(next);
-            if (next.$children.len()) {
-                stack.push(...next.getChildrenArray());
-            }
+            stack.push(...next.heir);
         }
 
         return new List(res);
@@ -120,7 +110,7 @@ export default class List {
         //    in given column, combine two record
         //    together.
         for (let i = this.length-1; i >= 0; i--){
-            let thisColVal = this.$array[i][thisCol];
+            let thisColVal = this[i][thisCol];
             if(fromDict.has(thisColVal)){
                 Object.assign(this[i], fromDict.get(thisColVal));
             }
@@ -130,7 +120,7 @@ export default class List {
     }
 
     insert(index, newRec){
-        this.array.splice(index, 0, newRec);
+        this.splice(index, 0, newRec);
         return new List(this);
     }
 

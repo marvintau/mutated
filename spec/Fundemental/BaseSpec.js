@@ -1,4 +1,4 @@
-import Schema from '../../src/Schema';
+import Head from '../../src/Head';
 import Record from '../../src/Record';
 
 function randomVowel(){
@@ -63,9 +63,6 @@ function genTable(typeSpec, length=20){
     for (let key in typeSpec){
         let type = typeSpec[key].slice(2);
         table[key] = gen[type](length);
-        if (type === 'String'){
-            console.log(table[key], 'string');
-        }
     }
     return {length, table};
 }
@@ -80,7 +77,7 @@ describe("TypeDict", function() {
         interval:  'PerInterval'
     }
 
-    let schema = new Schema(typeSpec);
+    let schema = new Head(typeSpec);
 
     let generated = genTable(typeSpec, 40);
 
@@ -93,7 +90,7 @@ describe("TypeDict", function() {
     });
 
     it("shouldn't be modified once created", function() {
-        let errorText = "Cannot assign to read only property 'entry' of object '#<Schema>'";
+        let errorText = "Cannot assign to read only property 'entry' of object '#<Head>'";
         expect(() => {schema.entry = Number})
             .toThrow(new TypeError(errorText));
     })

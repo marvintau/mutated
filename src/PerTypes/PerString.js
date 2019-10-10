@@ -1,4 +1,4 @@
-class MuString extends String {
+export default class PerString extends String {
 
     static sum(list){
         let identical = list.every((v, i, a) => v == a[0]);

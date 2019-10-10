@@ -7,4 +7,8 @@ export default class PerFloat extends Number {
     constructor(number=0){
         super(number);
     }
+
+    display(){
+        return parseFloat(this.toFixed(2));
+    }
 }

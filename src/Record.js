@@ -2,43 +2,60 @@ import List from "./List";
 
 export default class Record {
     
-    constructor(fields, {schema={}, children=new List(), subtable}={}){
+    constructor(cols={}, {head={}, heir=new List(), subs}={}){
 
-        if (fields instanceof Record){
-            Object.assign(this, fields);
+        if (cols instanceof Record){
+            Object.assign(this, cols);
         } else {
-            this.$fields = {}
-            for (let colKey in schema){
-                let val = fields[colKey] === null ? undefined : fields[colKey];
-                this.$fields[colKey] = new schema[colKey](val);
+            this.cols = {}
+            for (let colKey in head){
+                let val = cols[colKey] === null ? undefined : cols[colKey];
+                this.cols[colKey] = new head[colKey].type(val);
             }
     
-            this.$schema = schema;
-            this.$subtable = subtable;    
-            this.$children = children;
+            this.head = head;
+            this.subs = subs;    
+            this.heir = heir;
         }        
     }
 
     set(key, value){
-        let Cons = this.$schema[key];
-        this.$fields[key] = new Cons(value);
+        let Cons = this.head[key].type;
+        this.cols[key] = new Cons(value);
         return new Record(this);
     }
 
     get(key){
-        return this.$fields[key];
+        return this.cols[key];
     }
 
-    getChildrenArray(){
-        return this.$children.getArray();
+    table(){
+        return this.subs;
+    }
+
+    hasChild(){
+        return this.heir.length > 0
+    }
+    
+    hasTable(){
+        return this.subs !== undefined;
+    }
+
+    isLeaf(){
+        return !(this.hasChild() || this.hasTable());
     }
 
     addChild(rec){
-        this.$subtable = undefined;
-        this.$children.push(rec);
+        this.subs = undefined;
+        this.heir.push(rec);
     }
     
     keys(){
-        return Object.keys(this.$fields);
+        return Object.keys(this.cols);
+    }
+
+    valueOf(){
+        let entries = Object.entries(this.cols).map(([k, v]) => [k, v.valueOf()])
+        return Object.fromEntries(entries);
     }
 }

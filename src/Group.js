@@ -12,14 +12,14 @@ import List from "./List";
  */
 export default class Group {
     
-    constructor(group, {desc='无描述', tabStyle="paginator"}={}){
+    constructor(group, {desc='无描述', style="paginator"}={}){
 
         if (group instanceof Group){
             Object.assign(this, group);
         } else {
             this.group = group;
             this.desc = desc;
-            this.tabStyle = tabStyle;
+            this.style = style;
         }
     }
 
