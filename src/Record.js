@@ -46,7 +46,6 @@ export default class Record {
     }
 
     addChild(rec){
-        this.subs = undefined;
         this.heir.push(rec);
     }
     

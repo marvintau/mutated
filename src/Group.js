@@ -33,7 +33,7 @@ export default class Group {
     }
 
     vals(){
-        return Object.values(this.group);
+        return List.from(Object.values(this.group));
     }
 
     keys(){
@@ -65,7 +65,7 @@ export default class Group {
     }
 
     grap() {
-        return new List(this.vals().flat());
+        return List.from(this.vals().flat());
     }
 
 }

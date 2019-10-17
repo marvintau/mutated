@@ -3,11 +3,7 @@ import Group from './Group';
 export default class List extends Array{
 
     constructor(...args){
-        if (args[0] instanceof Array || args[0] instanceof List){
-            super(...args[0]);
-        } else {
-            super(...args);
-        }
+        super(...args);
     }
 
     /**
@@ -16,8 +12,12 @@ export default class List extends Array{
      *                               从而确保最终的值在[0, this.length-1]的范围内。
      */
     last(backwardIndex=1){
-        backwardIndex = Math.max(Math.min(backwardIndex, 1), this.length);
+        backwardIndex = Math.max(Math.min(backwardIndex, this.length), 1);
         return this[this.length - backwardIndex];
+    }
+
+    isEmpty(){
+        return this.length === 0;
     }
 
     ordr(func, order=1){
@@ -28,7 +28,7 @@ export default class List extends Array{
             return indexA < indexB ? -order : indexA > indexB ? order : 0;
         })
 
-        return new List(...this);
+        return List.from(this);
     }
 
     grip(func, {desc='noname', style='paginator'}={}){
@@ -55,49 +55,78 @@ export default class List extends Array{
             uniq[func(this[i])] = this[i];
         }
 
-        let list = new List();
+        let list = new List(0);
         for (let key in uniq){
             list.push(uniq[key]);
         }
         return list;
     }
 
-    cascade(layerFunc, gatherFunc) {
+    cascade(layerFunc, parentTestFunc, addChildFunc=(p, c)=>{p.addChild(c)}) {
 
         // grip使用了layerFunc，将列表分为几代（Generation）
-        let layers = this.ordr(layerFunc).grip(layerFunc).vals().reverse();
-
+        console.log('length', this.length);
+        console.time('grip');
+        let layers = this.ordr(layerFunc).grip(layerFunc).vals();
+        console.timeEnd('grip');
         // 每相邻的两代之间两两比较，如果没有找到父辈的孩子会被弃掉。
+
         let descendants;
-        for (descendants = layers.shift(); layers.length > 0; descendants = layers.shift()) {
-            let ancestors = layers[0];
+        for (descendants = layers.pop(); layers.length > 0; descendants = layers.pop()) {
+            let ancestors = layers.pop();
+            console.time('comparisonLevel');
             while (descendants.length > 0) {
-                let entry = descendants.shift();
-                for (let maybeParent of ancestors) if (gatherFunc(entry, maybeParent)) {
-                    maybeParent.addChild(entry);
+                let child = descendants.pop();
+                for (let i = 0; i < ancestors.length; i++){
+                    let parent = ancestors[i];
+                    if (parentTestFunc(child, parent)) addChildFunc(parent, child)
                 }
             }
+            for (let i = 0; i < ancestors; i++){
+                ancestors[i].subs = undefined;
+            }
+            console.timeEnd('comparisonLevel')
+            layers.push(ancestors);
         }
 
         // 返回祖先一代。
-        return new List(descendants);
-        // return layers;
+        return descendants;
     }
 
-    flatten(){
+    // 把cascaded过的列表展开。
+    flatten(getChildren=(e) => e.heir){
 
-        const stack = new List(...this);
-        const res = [];
+        const stack = List.from(this);
+        const res = new List(0);
         while (stack.length) {
-            const next = stack.shift();
-            res.push(next);
-            stack.push(...next.heir);
+            const curr = stack.pop();
+            res.push(curr);
+            stack.push(...getChildren(curr));
         }
 
-        return new List(res);
+        return res;
     }
 
-    join(from, {fromCol, thisCol}){
+    // 把cascaded过的列表按路径展开。需要注意的是，只保留到叶子结点的路径
+    flattenPath(getChildren=(e) => e.heir, isLeaf=(e) => e.heir.isEmpty()){
+        const stack = List.from(this).map(e => [e]);
+        const res = new List(0);
+        while (stack.length) {
+            
+            const path = stack.pop();
+            const [curr, ...prev] = path;
+
+            if(isLeaf(curr)){
+                res.push(path);
+            } else {
+                stack.push(...getChildren(curr).map(next => [next, curr, ...prev]));
+            }
+        }
+
+        return res.map(e => List.from(e)); 
+    }
+
+    outer(from, {fromCol, thisCol}){
 
         // 1. build up a dictionary with entry of 
         //    value of the column. 
@@ -116,12 +145,12 @@ export default class List extends Array{
             }
         }
 
-        return new List(this);
+        return List.from(this);
     }
 
     insert(index, newRec){
         this.splice(index, 0, newRec);
-        return new List(this);
+        return List.from(this);
     }
 
     swap(index, dir=1){
@@ -134,11 +163,15 @@ export default class List extends Array{
                 [this[index - 1], this[index]] = [this[index], this[index - 1]];
             }    
         }
-        return new List(this);
+        return List.from(this);
     }
 
     remove(index){
         this.splice(index, 1);
-        return new List(this);
+        return List.from(this);
+    }
+
+    toObject(){
+        return Object.fromEntries(this);
     }
 }
