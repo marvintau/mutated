@@ -62,7 +62,7 @@ export default class List extends Array{
         return list;
     }
 
-    cascade(layerFunc, parentTestFunc, addChildFunc=(p, c)=>{p.addChild(c)}) {
+    cascade(layerFunc, parentTestFunc, addChildFunc=(c, p)=>{p.addChild(c)}) {
 
         // grip使用了layerFunc，将列表分为几代（Generation）
         console.log('length', this.length);
@@ -79,7 +79,7 @@ export default class List extends Array{
                 let child = descendants.pop();
                 for (let i = 0; i < ancestors.length; i++){
                     let parent = ancestors[i];
-                    if (parentTestFunc(child, parent)) addChildFunc(parent, child)
+                    if (parentTestFunc(child, parent)) addChildFunc(child, parent)
                 }
             }
             for (let i = 0; i < ancestors; i++){
@@ -111,6 +111,9 @@ export default class List extends Array{
     flattenPath(getChildren=(e) => e.heir, isLeaf=(e) => e.heir.isEmpty()){
         const stack = List.from(this).map(e => [e]);
         const res = new List(0);
+
+        console.time('flattenPath');
+
         while (stack.length) {
             
             const path = stack.pop();
@@ -122,6 +125,8 @@ export default class List extends Array{
                 stack.push(...getChildren(curr).map(next => [next, curr, ...prev]));
             }
         }
+
+        console.timeEnd('flattenPath');
 
         return res.map(e => List.from(e)); 
     }

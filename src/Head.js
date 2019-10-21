@@ -13,7 +13,7 @@ import List from './List';
 
 class MultiLine {
     constructor(string=""){
-        this.lines = string.split(',')
+        this.lines = string.split(/[,;] */)
     }
 
     valueOf(){
@@ -130,7 +130,7 @@ export default class Head {
         if (colsData === undefined){
             colsData = {};
             for (let key in this){
-                colsData = new this[key].type();
+                colsData[key] = new this[key].type();
             }
         }
 

@@ -22,7 +22,7 @@ export default class Record {
                     val = val.toString().replace(/,/g, '');
                 }
 
-                this.cols[colKey] = val === undefined ? undefined :new head[colKey].type(val);
+                this.cols[colKey] = val === undefined ? undefined : new head[colKey].type(val);
             }
     
             this.head = head;
