@@ -76,7 +76,7 @@ export default class Head {
             String(list){
                 let res = true;
                 for (let i = 0; i < list.length - 1; i++){
-                    res = res && (list[i] == list[i+1]);
+                    res = res && (list[i].valueOf() == list[i+1].valueOf());
                     if (!res) break;
                 }
                 return res ? list[0] : '...';
