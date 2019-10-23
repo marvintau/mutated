@@ -93,7 +93,13 @@ export default class Head {
         let resCols = {};
         for (let key in this){
             let keyList = list.map(e => e.get(key));
-            resCols[key] = typeSum[this[key].type.name](keyList);
+
+            let typeName = this[key].type.name,
+                sumFunc = typeSum[typeName];
+
+            if (sumFunc !== undefined){
+                resCols[key] = typeSum[this[key].type.name](keyList);
+            }
         }
 
         return new Record(resCols, {head: this});
