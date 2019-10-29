@@ -1,4 +1,4 @@
-import {Sheet} from './Sheet';
+import Sheet from './Sheet';
 
 export default class SheetCollection{
 
@@ -6,6 +6,8 @@ export default class SheetCollection{
         this.sheets = {};
         this.socket = socket;
         this.fetchStack = [];
+
+        this.refs = {};
 
         this.socket.on('RECV', ({position, percent, projName, sheetName, data})=>{
 
@@ -16,8 +18,6 @@ export default class SheetCollection{
                 type: this.sheets[sheetName].type
             }
 
-            console.log('nextpos', position);
-            this.log(`${projName.split('-')[0]} 项目 ${sheetName} 表: 已下载${(percent*100).toFixed(2)}%`, true)
             this.socket.emit('SEND', readyMsg);
 
             this.sheets[sheetName].receive(data)
@@ -41,6 +41,7 @@ export default class SheetCollection{
     }
 
     addSheet(name, sheet){
+        console.log(sheet.constructor.name);
         if(sheet.constructor.name !== 'Sheet'){
             throw Error('加入SheetCollection的并不是一个Sheet对象');
         }
@@ -101,10 +102,7 @@ export default class SheetCollection{
             this.fetchStack.pop();
 
             if(this.fetchStack.length === 0){
-                this.setState({
-                    currProjectName: projName,
-                    currSheet: sheetName
-                })
+                this.afterFetched();
             } else {
                 console.log(projName, sheetName, 'fetched.')
                 this.fetchTableWorker();
@@ -127,6 +125,7 @@ export default class SheetCollection{
                     this.sheets[refName] = new Sheet(ref);
                 }
 
+                console.log(this.sheets, refName, 'yep');
                 if(this.sheets[refName].status != 'ready'){
                     console.log('push remote')
                     this.fetchStack.push({projName, sheetName: refName, sheetSpec: this.sheets[refName]});
@@ -144,11 +143,26 @@ export default class SheetCollection{
         }
     }
 
-    fetchTable = ({projName, sheetName}) => {
+    fetchTable = ({projName, sheetName, afterFetched}) => {
 
+        this.afterFetched = afterFetched;
         this.fetchStack.push({projName, sheetName, sheetSpec: this.sheets[sheetName]});
         this.fetchTableWorker()
     }
 
+    // parseRef(refString){
+    //     let refName, refBody;
 
+    //     [refName, refBody] = refString.split(':=');
+    //     if (refBody !== undefined){
+    //         this.refs[refName] = refBody;
+    //         return refBody;
+    //     }
+
+    //     [refName, refBody] = refString.split('>>=');
+    //     if (refBody !== undefined){
+            
+    //     }
+
+    // }
 }

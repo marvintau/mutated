@@ -2,7 +2,7 @@ import List from "./List";
 
 export default class Record {
     
-    constructor(cols={}, {head={}, heir=new List(), subs}={}){
+    constructor(cols={}, {head={}, heir=new List(), subs, attr={}}={}){
 
         if (cols instanceof Record){
             Object.assign(this, cols);
@@ -28,6 +28,7 @@ export default class Record {
             this.head = head;
             this.subs = subs;    
             this.heir = heir;
+            this.attr = attr;
         }        
     }
 
