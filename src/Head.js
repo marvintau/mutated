@@ -25,6 +25,56 @@ class MultiLine {
     }
 }
 
+class RefString {
+    constructor(string=''){
+        this.string = string;
+    }
+
+    valueOf(){
+        return this.string;
+    }
+
+    display(){
+
+        let strippedString = this.string.replace(/\s+/g, '')
+
+        let [refName, refBody] = strippedString.split('@');
+
+        let ast = {
+            refName, refBody
+        }
+
+        if (refBody === undefined){
+            ast.refName = '',
+            ast.refBody = refName;
+        } 
+
+        let matched = ast.refBody.match(/(SUB)|(SUMSUB)|(NONE)/);
+        if (matched !== null){
+            ast.refBody = {func: ast.refBody};
+            return ast;
+        }
+
+        let [path, valExpr] = ast.refBody.split(':');
+        if(valExpr === undefined){
+            valExpr = path;
+            path = undefined;
+        }
+        // console.log(path, 'display')
+        let splittedPath;
+        if(path !== undefined){
+            splittedPath = path.split('/').map(dir => dir.split('&')).filter(e => e[0].length > 0);
+        }
+
+        ast.refBody = {
+            path: splittedPath,
+            valExpr
+        }
+
+        return ast;
+    }
+}
+
 class Path extends Array {
     constructor(...args){
         if (args.length === 0){
@@ -49,6 +99,7 @@ export default class Head {
             String:   String,
             Date:     Date,
             Path,
+            RefString,
             MultiLine
         }
 
@@ -56,7 +107,7 @@ export default class Head {
 
         for (let key in colsTypeSpec){
             if (!(colsTypeSpec[key] in types)){
-                console.warn(`Head: found non-existing type "${colsTypeSpec[key]}", typo suggested.`)
+                console.warn(`Head: found non-existing type "${colsTypeSpec[key]}", typo suggested.`, Object.keys(types))
             }
             this[key] = {type: types[colsTypeSpec[key]]}
         }
