@@ -27,7 +27,18 @@ class MultiLine {
 
 class RefString {
     constructor(string=''){
-        this.string = string;
+
+        if (string.constructor.name === 'RefString' || string.string !== undefined){
+            this.string = string.string;
+        } else {
+            this.string = string.toString();
+        }
+
+    }
+
+    set(newString){
+        this.string = newString;
+        return new RefString(newString);
     }
 
     valueOf(){
@@ -35,7 +46,6 @@ class RefString {
     }
 
     display(){
-
         let strippedString = this.string.replace(/\s+/g, '')
 
         let [refName, refBody] = strippedString.split('@');

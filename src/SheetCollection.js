@@ -125,7 +125,7 @@ export default class SheetCollection{
                     this.sheets[refName] = new Sheet(ref);
                 }
 
-                console.log(this.sheets, refName, 'yep');
+                // console.log(this.sheets, refName, 'yep');
                 if(this.sheets[refName].status != 'ready'){
                     console.log('push remote')
                     this.fetchStack.push({projName, sheetName: refName, sheetSpec: this.sheets[refName]});
@@ -145,24 +145,11 @@ export default class SheetCollection{
 
     fetchTable = ({projName, sheetName, afterFetched}) => {
 
+        if(this.sheets[sheetName].forceReload){
+            this.sheets[sheetName].status = 'none';
+        }
         this.afterFetched = afterFetched;
         this.fetchStack.push({projName, sheetName, sheetSpec: this.sheets[sheetName]});
         this.fetchTableWorker()
     }
-
-    // parseRef(refString){
-    //     let refName, refBody;
-
-    //     [refName, refBody] = refString.split(':=');
-    //     if (refBody !== undefined){
-    //         this.refs[refName] = refBody;
-    //         return refBody;
-    //     }
-
-    //     [refName, refBody] = refString.split('>>=');
-    //     if (refBody !== undefined){
-            
-    //     }
-
-    // }
 }

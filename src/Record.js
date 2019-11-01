@@ -2,15 +2,22 @@ import List from "./List";
 
 export default class Record {
     
-    constructor(cols={}, {head={}, heir=new List(), subs, attr={}}={}){
+    constructor(cols={}, {head={}, heir=new List(0), subs, attr={}}={}){
 
         if (cols instanceof Record){
             Object.assign(this, cols);
         } else {
             this.cols = {}
             for (let colKey in head){
+
                 let val = cols[colKey] === null ? undefined : cols[colKey];
 
+                // 如果是一则出错信息，那么直接保留下来，并确保最终能显示出来。
+                if(val!== undefined && val.error){
+                    this.cols[colKey] = val;
+                    continue;
+                }
+                
                 // 尽管会尽可能地在这一步之前排除，但是我们仍然会遇到在生成Record时，
                 // 有的Number类型的字段值是一个包含逗号的字符串，如 "123,456.78"。
                 // 我们在这里处理掉它。在找到更稳妥的数据处理方法之前请保留这个
@@ -30,6 +37,13 @@ export default class Record {
             this.heir = heir;
             this.attr = attr;
         }        
+    }
+
+    copy(){
+        let cols = Object.assign({}, this.cols),
+            attr = Object.assign({}, this.attr),
+            heir = List.from(this.heir);
+        return new Record(cols, {head: this.head, heir, attr});
     }
 
     set(key, value){

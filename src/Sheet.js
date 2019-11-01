@@ -1,15 +1,29 @@
 export default class Sheet {
-    constructor({referred={}, type, isSavable=false, status='none', location='local', importProc, exportProc, desc='无描述'}){
+    constructor({
+        referred={},
+        type,
+        isSavable=false,
+        isExportable=false,
+        status='none',
+        location='local',
+        importProc,
+        exportProc,
+        forceReload=false,
+    desc='无描述'}){
         this.referred = referred;
         this.importProc = importProc;
         this.exportProc = exportProc;
         this.type = type;
         this.desc = desc;
+
         this.isSavable = isSavable;
-        
+        this.isExportable = isExportable;
+
         // for fetching
         this.status = status;
         this.location = location;
+
+        this.forceReload = forceReload;
     }
 
     addReferred(name, spec){

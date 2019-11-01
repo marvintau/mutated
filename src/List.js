@@ -74,6 +74,14 @@ export default class List extends Array{
         let descendants;
         for (descendants = layers.pop(); layers.length > 0; descendants = layers.pop()) {
             let ancestors = layers.pop();
+
+            // 如果是一个之前flatten过的List，那么此时的ancestors里肯定是
+            // 有children的，如果反复添加children肯定会造成错误。所以此处
+            // 我们应当吧ancestors中的heir清零，然后在下一个步骤中重新添加。
+            for (let i = 0; i < ancestors.length; i++){
+                ancestors[i].heir = [];
+            }
+
             console.time('comparisonLevel');
             while (descendants.length > 0) {
                 let child = descendants.pop();
@@ -82,7 +90,7 @@ export default class List extends Array{
                     if (parentTestFunc(child, parent)) addChildFunc(child, parent)
                 }
             }
-            for (let i = 0; i < ancestors; i++){
+            for (let i = 0; i < ancestors.length; i++){
                 ancestors[i].subs = undefined;
             }
             console.timeEnd('comparisonLevel')
@@ -96,14 +104,17 @@ export default class List extends Array{
     // 把cascaded过的列表展开。
     flatten(getChildren=(e) => e.heir){
 
-        const stack = List.from(this);
+        const stack = List.from(this).reverse();
         const res = new List(0);
         while (stack.length) {
             const curr = stack.pop();
+
             res.push(curr);
-            stack.push(...getChildren(curr));
+            stack.push(...List.from(getChildren(curr)).reverse());
         }
 
+        // 需要注意的是，res里是展开的每一条记录，但记录中所保存的
+        // 对子层记录的引用没有改变。
         return res;
     }
 
@@ -179,4 +190,5 @@ export default class List extends Array{
     toObject(){
         return Object.fromEntries(this);
     }
+
 }
