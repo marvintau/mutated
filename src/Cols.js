@@ -1,10 +1,10 @@
-import List from "./List";
+import Body from "./Body";
 
-export default class Record {
+export default class Cols {
     
-    constructor(cols={}, {head={}, heir=new List(0), subs, attr={}}={}){
+    constructor(cols={}, {head, subs=new Body(0), attr={}}={}){
 
-        if (cols instanceof Record){
+        if (cols instanceof Cols){
             Object.assign(this, cols);
         } else {
             this.cols = {}
@@ -13,12 +13,12 @@ export default class Record {
                 let val = cols[colKey] === null ? undefined : cols[colKey];
 
                 // 如果是一则出错信息，那么直接保留下来，并确保最终能显示出来。
-                if(val!== undefined && val.error){
+                if(val!== undefined && (val.error !== undefined || val.valid !== undefined)){
                     this.cols[colKey] = val;
                     continue;
                 }
                 
-                // 尽管会尽可能地在这一步之前排除，但是我们仍然会遇到在生成Record时，
+                // 尽管会尽可能地在这一步之前排除，但是我们仍然会遇到在生成Cols时，
                 // 有的Number类型的字段值是一个包含逗号的字符串，如 "123,456.78"。
                 // 我们在这里处理掉它。在找到更稳妥的数据处理方法之前请保留这个
                 // workaround。
@@ -34,7 +34,6 @@ export default class Record {
     
             this.head = head;
             this.subs = subs;    
-            this.heir = heir;
             this.attr = attr;
         }        
     }
@@ -42,42 +41,26 @@ export default class Record {
     copy(){
         let cols = Object.assign({}, this.cols),
             attr = Object.assign({}, this.attr),
-            heir = List.from(this.heir);
-        return new Record(cols, {head: this.head, heir, attr});
+            subs = Body.from(this.subs);
+        return new Cols(cols, {head: this.head, subs, attr});
     }
 
     set(key, value){
         let Cons = this.head[key].type;
         this.cols[key] = new Cons(value);
-        return new Record(this);
+        return new Cols(this);
     }
 
     get(key){
         return this.cols[key];
     }
-
-    table(){
-        return this.subs;
-    }
-
-    hasChild(){
-        return this.heir.length > 0
-    }
-    
-    hasTable(){
-        return this.subs !== undefined;
-    }
-
-    isLeaf(){
-        return !(this.hasChild() || this.hasTable());
-    }
-
-    addChild(rec){
-        this.heir.push(rec);
-    }
     
     keys(){
         return Object.keys(this.cols);
+    }
+
+    subsType(){
+        return this.subs.constructor.name;
     }
 
     valueOf(){

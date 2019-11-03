@@ -10,24 +10,22 @@ export default class Sheet {
         exportProc,
         forceReload=false,
     desc='无描述'}){
+
+        // 表预设的描述信息
         this.referred = referred;
         this.importProc = importProc;
         this.exportProc = exportProc;
         this.type = type;
         this.desc = desc;
 
+        // 提供控制选项
         this.isSavable = isSavable;
         this.isExportable = isExportable;
 
-        // for fetching
+        // fetching所需的属性
         this.status = status;
         this.location = location;
-
         this.forceReload = forceReload;
-    }
-
-    addReferred(name, spec){
-        this.referred[name] = spec;
     }
 
     // 只有存放在remote的数据才会使用receive方法
@@ -50,7 +48,7 @@ export default class Sheet {
     }
 
     import(sheets){
-        this.sections = this.importProc(sheets);
+        this.tables = this.importProc(sheets);
         this.status = 'ready';
     }
 }

@@ -1,113 +1,18 @@
-import Record from './Record'
-import List from './List';
+import Cols from './Cols'
 
-/**
- * Schema
- * ------
- * @param {Object} colsTypeSpec 字段名称及其对应类型。可选的类型包括：
- * ```
- * 'Float' | 'Integer' | 'String' | 'Date' | 'Interval'
- * ```
- * 请特别注意大小写。
- */
-
-class MultiLine {
-    constructor(string=""){
-        this.lines = string.split(/[,;] */)
-    }
-
-    valueOf(){
-        return this.lines.join('\n');
-    }
-
-    setLines(func){
-        this.lines = this.lines.map(func)
-    }
-}
-
-class RefString {
-    constructor(string=''){
-
-        if (string.constructor.name === 'RefString' || string.string !== undefined){
-            this.string = string.string;
-        } else {
-            this.string = string.toString();
-        }
-
-    }
-
-    set(newString){
-        this.string = newString;
-        return new RefString(newString);
-    }
-
-    valueOf(){
-        return this.string;
-    }
-
-    display(){
-        let strippedString = this.string.replace(/\s+/g, '')
-
-        let [refName, refBody] = strippedString.split('@');
-
-        let ast = {
-            refName, refBody
-        }
-
-        if (refBody === undefined){
-            ast.refName = '',
-            ast.refBody = refName;
-        } 
-
-        let matched = ast.refBody.match(/(SUB)|(SUMSUB)|(NONE)/);
-        if (matched !== null){
-            ast.refBody = {func: ast.refBody};
-            return ast;
-        }
-
-        let [path, valExpr] = ast.refBody.split(':');
-        if(valExpr === undefined){
-            valExpr = path;
-            path = undefined;
-        }
-        // console.log(path, 'display')
-        let splittedPath;
-        if(path !== undefined){
-            splittedPath = path.split('/').map(dir => dir.split('&')).filter(e => e[0].length > 0);
-        }
-
-        ast.refBody = {
-            path: splittedPath,
-            valExpr
-        }
-
-        return ast;
-    }
-}
-
-class Path extends Array {
-    constructor(...args){
-        if (args.length === 0){
-            super(0);
-            this.push(0);
-        } else if (Array.isArray(args[0])) {
-            super(0);
-            this.push(...args[0]);
-        } else {
-            super(...args);
-        }
-    }
-}
+import Path from './Path';
+import RefString from './RefString';
+import MultiLine from './MultiLine';
+import Body from './Body';
 
 export default class Head {
 
     constructor(colsTypeSpec){
 
         const types = {
-            Float:    Number,
-            Integer:  Number,
-            String:   String,
-            Date:     Date,
+            Number,
+            String,
+            Date,
             Path,
             RefString,
             MultiLine
@@ -137,7 +42,7 @@ export default class Head {
             String(list){
                 let res = true;
                 for (let i = 0; i < list.length - 1; i++){
-                    res = res && (list[i].valueOf() == list[i+1].valueOf());
+                    res = res && (list[i] !== undefined && list[i+1] !== undefined && list[i].valueOf() == list[i+1].valueOf());
                     if (!res) break;
                 }
                 return res ? list[0] : '...';
@@ -160,10 +65,12 @@ export default class Head {
 
             if (sumFunc !== undefined){
                 resCols[key] = typeSum[this[key].type.name](keyList);
+            } else {
+                resCols[key] = '...';
             }
         }
 
-        return new Record(resCols, {head: this});
+        return new Cols(resCols, {head: this});
     }
 
     /**
@@ -185,35 +92,11 @@ export default class Head {
         }
     }
 
-    checkColProp(propName){
-        for (let key in this){
-            if (!(propName in this[key])) return {res: false, key}
-        }
-        return {res: true};
+    createCols(cols){
+        return new Cols(cols, {head: this});
     }
 
-    createRecord(colsData){
-
-        if (colsData === undefined){
-            colsData = {};
-            for (let key in this){
-                colsData[key] = new this[key].type();
-            }
-        }
-
-        return new Record(colsData, {head: this});
-    }
-
-    // for test purpose only
-    createTableFromColumnLists({length, table}){
-        let recs = [];
-        for (let i = 0; i < length; i++){
-            let rec = {};
-            for (let key in table){
-                rec[key] = table[key][i];
-            }
-            recs.push(new Record(rec, {head: this}));
-        }
-        return new List(recs);
+    createBody(data){
+        return Body.from(data.map(e => this.createCols(e)));
     }
 }

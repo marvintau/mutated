@@ -9,7 +9,7 @@ export default class SheetCollection{
 
         this.refs = {};
 
-        this.socket.on('RECV', ({position, percent, projName, sheetName, data})=>{
+        this.socket.on('RECV', ({position, projName, sheetName, data})=>{
 
             let readyMsg = {
                 projName,
@@ -22,7 +22,7 @@ export default class SheetCollection{
 
             this.sheets[sheetName].receive(data)
 
-        }).on('DONE', ({projName, sheetName, data}) => {
+        }).on('DONE', ({sheetName, data}) => {
             this.sheets[sheetName].receive(data, 'LAST', () => {
                 this.fetchTableWorker();
             })
@@ -96,11 +96,15 @@ export default class SheetCollection{
             return;
         }
 
+        // 取fetchStack中最后一个
         let {projName, sheetName, sheetSpec} = this.fetchStack[this.fetchStack.length - 1];
         
+        // 如果取出的sheet已经是ready，那么将它从栈中弹出。如果弹出的是最后一个，
+        // 表示我们所有需要取回的数据都已经结束，进入afterFetched，否则继续递归
+        // 调用fetchTableWorker。
         if (sheetSpec.status === 'ready'){
             this.fetchStack.pop();
-
+            
             if(this.fetchStack.length === 0){
                 this.afterFetched();
             } else {
@@ -108,11 +112,14 @@ export default class SheetCollection{
                 this.fetchTableWorker();
             }
 
+        // 如果sheetSpec还没有ready，那么不弹出，并向服务器发送取回的信息。此处没
+        // 有递归调用，而是收到服务器返回消息时才会继续调用fetchWorker。
         } else if (sheetSpec.location === 'remote'){
             console.log('handling remote');
             this.socket.emit('SEND', { projName, sheetName, type: sheetSpec.type, position: 0});
             // now leave the remaining check to socket.on('DONE');
 
+        // 如果sheetSpec的位置是本地，
         } else if (sheetSpec.location === 'local'){
             console.log('handling local');
             let {referred} = sheetSpec,
