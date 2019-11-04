@@ -2,14 +2,17 @@ import Sheet from './Sheet';
 
 export default class SheetCollection{
 
-    constructor(socket){
+    constructor(socket, log=console.log){
         this.sheets = {};
         this.socket = socket;
         this.fetchStack = [];
+        this.log = log;
 
         this.refs = {};
 
-        this.socket.on('RECV', ({position, projName, sheetName, data})=>{
+        this.socket.on('RECV', ({position, percent, projName, sheetName, data})=>{
+
+            this.log(`[${projName}] 的 [${this.sheets[sheetName].desc}] 已下载${(percent*100).toFixed(2)+'%'}`, true);
 
             let readyMsg = {
                 projName,
@@ -22,12 +25,17 @@ export default class SheetCollection{
 
             this.sheets[sheetName].receive(data)
 
-        }).on('DONE', ({sheetName, data}) => {
+        }).on('DONE', ({projName, sheetName, data}) => {
+            this.log(`[${projName}] 的 [${this.sheets[sheetName].desc}] 已下载100%`, true);
+
             this.sheets[sheetName].receive(data, 'LAST', () => {
                 this.fetchTableWorker();
             })
+        }).on('NOTFOUND', ({projName, sheetName, data}) => {
+            this.log(`[${projName}] 的 [${this.sheets[sheetName].desc}] 未找到，极可能是您没有上传相关的数据文件。请先完成上传并更新数据后再回来。`, true);
+            this.fetchStack = [];
         }).on("SAVED", () => {
-            console.log('receipt.')
+            console.log('已保存')
         })
 
     }
@@ -89,10 +97,7 @@ export default class SheetCollection{
 
     fetchTableWorker(){
 
-        console.log('FetchTable® Worker Working.');
-
         if (this.fetchStack.length === 0){
-            console.log('handling racing.')
             return;
         }
 
@@ -103,6 +108,7 @@ export default class SheetCollection{
         // 表示我们所有需要取回的数据都已经结束，进入afterFetched，否则继续递归
         // 调用fetchTableWorker。
         if (sheetSpec.status === 'ready'){
+            this.log(`[${projName}] 的 [${sheetSpec.desc}] 表已存在`);
             this.fetchStack.pop();
             
             if(this.fetchStack.length === 0){
@@ -115,13 +121,13 @@ export default class SheetCollection{
         // 如果sheetSpec还没有ready，那么不弹出，并向服务器发送取回的信息。此处没
         // 有递归调用，而是收到服务器返回消息时才会继续调用fetchWorker。
         } else if (sheetSpec.location === 'remote'){
-            console.log('handling remote');
+            this.log(`[${projName}] 的 [${sheetSpec.desc}] 表是远程数据表，待从后台获取`, true);
             this.socket.emit('SEND', { projName, sheetName, type: sheetSpec.type, position: 0});
             // now leave the remaining check to socket.on('DONE');
 
         // 如果sheetSpec的位置是本地，
         } else if (sheetSpec.location === 'local'){
-            console.log('handling local');
+            this.log(`[${projName}] 的 [${sheetSpec.desc}] 表是本地数据表，须先检查其所依赖的数据表`);
             let {referred} = sheetSpec,
                 allReferredReady = true;
 
@@ -134,7 +140,7 @@ export default class SheetCollection{
 
                 // console.log(this.sheets, refName, 'yep');
                 if(this.sheets[refName].status != 'ready'){
-                    console.log('push remote')
+                    this.log(`[${projName}] 的 [${this.sheets[refName].desc}] 进入队列`)
                     this.fetchStack.push({projName, sheetName: refName, sheetSpec: this.sheets[refName]});
                 } 
 
@@ -146,11 +152,13 @@ export default class SheetCollection{
             }
             this.fetchTableWorker();
         } else {
-            this.log('遇到了一个表没有定义location，是写代码的人的锅，请打电话联系他。')
+            this.log(`哎呀呀，[${sheetSpec.desc}] 没有定义location，请打电话联系程序员`)
         }
     }
 
     fetchTable = ({projName, sheetName, afterFetched}) => {
+
+        console.log(this.fetchStack, 'current fetch stack before next');
 
         if(this.sheets[sheetName].forceReload){
             this.sheets[sheetName].status = 'none';
