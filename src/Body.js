@@ -36,7 +36,7 @@ export default class Body extends List {
     }
 
     isColSame(key){
-        return this.mapCol(key).every((v, i, a) => v === a[0]);
+        return this.mapCol(key).every((v, i, a) => v.valueOf() == a[0]);
     }
 
     orderBy(key){

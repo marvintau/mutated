@@ -19,6 +19,7 @@ export default class List extends Array{
     }
 
     insert(index, newRec){
+        console.log(index, newRec, 'inserting');
         this.splice(index, 0, newRec);
         return List.from(this);
     }
@@ -37,7 +38,9 @@ export default class List extends Array{
     }
 
     remove(index){
-        this.splice(index, 1);
+        if(this.length > 1){
+            this.splice(index, 1);
+        }
         return List.from(this);
     }
 

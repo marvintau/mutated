@@ -29,7 +29,7 @@ export default class Cols {
                     val = val.toString().replace(/,/g, '');
                 }
 
-                this.cols[colKey] = val === undefined ? undefined : new head[colKey].type(val);
+                this.cols[colKey] = new head[colKey].type(val);
             }
     
             this.head = head;
