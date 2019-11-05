@@ -47,4 +47,8 @@ export default class List extends Array{
     toObject(){
         return Object.fromEntries(this);
     }
+
+    max(){
+        return Math.max(...this);
+    }
 }
