@@ -1,6 +1,11 @@
 export default class MultiLine {
-    constructor(string=""){
-        this.lines = string.split(/[,;] */)
+    constructor(arg=""){
+
+        if (arg instanceof MultiLine){
+            this.lines = arg.lines;
+        } else{
+            this.lines = arg.split(/[,;] */)
+        }
     }
 
     valueOf(){

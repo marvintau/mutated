@@ -15,9 +15,10 @@ export default class Body extends List {
                 throw Error('findBy: found non-string value in path');
             }
 
-            let listRef = this, destRec;
+            let listRef = this, destRec = undefined;
             for (let elem of matchValue){
-                destRec = listRef.find(e => e.get(key).valueOf() === elem);
+                let trimmed = elem.trim();
+                destRec = listRef.find(e => e.get(key).valueOf() === trimmed);
                 if (destRec === undefined){
                     break;
                 }
@@ -157,11 +158,12 @@ export default class Body extends List {
     }
 
     copy(){
+        
         for (let i = 0; i < this.length; i++){
             this[i] = this[i].copy();
             this[i].subs = this[i].subs.copy();
         }
-        return Body.from(this);
+        return new Body(...this);
     }
     
     backTraverse(func){

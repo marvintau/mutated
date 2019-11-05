@@ -60,18 +60,19 @@ export default class Tabs {
 
     iter = (func) => {
 
-        const entries = Object.entries(this.group);
+        let newGroup = Object.assign({}, this.group);
+
+        const entries = Object.entries(newGroup);
 
         for (let i = 0; i < entries.length; i++){
             let [key, value] = entries[i];            
-            this.group[key] = func(key, value);
+            newGroup[key] = func(key, value);
         }
 
-        return new Tabs(this);
+        return new Tabs(newGroup, {desc: this.desc, style:this.style});
     }
 
     grap() {
         return Body.from(this.vals().flat());
     }
-
 }
