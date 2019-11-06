@@ -39,7 +39,7 @@ export default class Body extends List {
         return this.mapCol(key).every((v, i, a) => v.valueOf() == a[0]);
     }
 
-    orderBy(key){
+    orderBy(key, isAscending=true){
         this.sort((prev, next) => {
             let prevVal = prev.get(key),
                 nextVal = next.get(key);
@@ -52,7 +52,11 @@ export default class Body extends List {
                 nextVal = parseFloat(nextVal);
             }
 
-            return (prevVal > nextVal) ? 1 : (prevVal < nextVal) ? -1 : 0;
+            let order = isAscending ? 1 : -1
+
+            let res = (prevVal > nextVal) ? 1 : (prevVal < nextVal) ? -1 : 0;
+
+            return order * res;
         })
 
         return Body.from(this);

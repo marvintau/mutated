@@ -34,6 +34,7 @@ export default class SheetCollection{
         }).on('NOTFOUND', ({projName, sheetName, data}) => {
             this.log(`[${projName}] 的 [${this.sheets[sheetName].desc}] 未找到，极可能是您没有上传相关的数据文件。请先完成上传并更新数据后再回来。`, true);
             this.fetchStack = [];
+            this.afterFetched(false);
         }).on("SAVED", () => {
             console.log('已保存')
         })
@@ -112,7 +113,7 @@ export default class SheetCollection{
             this.fetchStack.pop();
             
             if(this.fetchStack.length === 0){
-                this.afterFetched();
+                this.afterFetched(true);
             } else {
                 console.log(projName, sheetName, 'fetched.')
                 this.fetchTableWorker();
