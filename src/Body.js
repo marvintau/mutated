@@ -109,15 +109,22 @@ export default class Body extends List {
             // 需要注意这个操作并不会影响到叶子结点，因此如果叶子结点中保存的是明细
             // 表也不会受到影响。这符合我们之前的叶子结点只保存明细表的约定。
 
-            for (let i = 0; i < parents.length; i++){
-                parents[i].subs = new Body(0);
-            }
+            for (let i = 0; i < parents.length; i++)
+                if(Array.isArray(parents[i].subs) || parents[i].subs === undefined){
+                    parents[i].subs = new Body(0);
+                }
 
             while (children.length > 0) {
                 let child = children.pop();
                 for (let i = 0; i < parents.length; i++){
                     let parent = parents[i];
-                    if (child.get(colKey).startsWith(parent.get(colKey))) parent.subs.push(child);
+                    
+                    if (child.get(colKey).startsWith(parent.get(colKey))) try{
+                        parent.subs.push(child)
+                    }catch{
+                        console.log(parent);
+                        throw Error('found')
+                    }
                 }
             }
             layers.push(parents);
