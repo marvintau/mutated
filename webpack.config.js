@@ -33,8 +33,8 @@ module.exports = {
 				toplevel: false,
 				nameCache: null,
 				ie8: false,
-				keep_classnames: undefined,
-				keep_fnames: true, // change to true here
+				keep_classnames: true, // keep class name from being mangled
+				keep_fnames: true, // keep functions as well
 				safari10: false,
 				},
 			}),
