@@ -2,7 +2,8 @@ import Sheet from './Sheet';
 
 export default class SheetCollection{
 
-    constructor(socket, log=console.log){
+    constructor(socket, id, log=console.log){
+        this.id = id;
         this.sheets = {};
         this.socket = socket;
         this.fetchStack = [];
@@ -15,6 +16,7 @@ export default class SheetCollection{
             this.log(`[${projName}] 的 [${this.sheets[sheetName].desc}] 已下载${(percent*100).toFixed(2)+'%'}`, true);
 
             let readyMsg = {
+                id: this.id,
                 projName,
                 sheetName,
                 position,
@@ -47,6 +49,7 @@ export default class SheetCollection{
 
     clearSheets(){
         this.sheets = {};
+        this.id = undefined;
     }
 
     addSheet(name, sheet){
@@ -98,6 +101,8 @@ export default class SheetCollection{
 
     fetchTableWorker(){
 
+        console.log(this.log, 'this log');
+
         if (this.fetchStack.length === 0){
             return;
         }
@@ -123,7 +128,7 @@ export default class SheetCollection{
         // 有递归调用，而是收到服务器返回消息时才会继续调用fetchWorker。
         } else if (sheetSpec.location === 'remote'){
             this.log(`[${projName}] 的 [${sheetSpec.desc}] 表是远程数据表，待从后台获取`, true);
-            this.socket.emit('SEND', { projName, sheetName, type: sheetSpec.type, position: 0});
+            this.socket.emit('SEND', {id: this.id, projName, sheetName, type: sheetSpec.type, position: 0});
             // now leave the remaining check to socket.on('DONE');
 
         // 如果sheetSpec的位置是本地，
@@ -161,6 +166,7 @@ export default class SheetCollection{
 
         console.log(this.fetchStack, 'current fetch stack before next');
 
+        console.log(sheetName, this.sheets[sheetName]);
         if(this.sheets[sheetName].forceReload){
             this.sheets[sheetName].status = 'none';
         }
