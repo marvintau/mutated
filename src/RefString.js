@@ -87,18 +87,18 @@ const evalFunc = (expr, subs) => {
     if(expr === 'SUMSUB'){
         let value = subs.map(e => NaNto0(e.get('value').value))
         .reduce((acc, e) => acc+e, 0);
-        return {value};
+        return {value, type:'NORMAL'};
     }
     if(expr === 'SUB1'){
         let value = NaNto0(subs[0].get('value').value);
-        return {value};
+        return {value, type:'NORMAL'};
     }
     if(expr === 'NONE'){
         return {value:''};
     }
     return {
         value:'不能识别的函数',
-        type:'error'
+        type:'ERROR'
     };
 }
 
@@ -150,45 +150,6 @@ export default class RefString {
         return matchRef(this.string.replace(/\s+/g, ''))
     }
 
-    display(){
-        let strippedString = this.string.replace(/\s+/g, '')
-
-        let [refName, refBody] = strippedString.split('@');
-
-        let ast = {
-            refName, refBody
-        }
-
-        if (refBody === undefined){
-            ast.refName = '',
-            ast.refBody = refName;
-        } 
-
-        let matched = ast.refBody.match(/^[_A-Z]+$/);
-        if (matched !== null){
-            ast.refBody = {func: ast.refBody};
-            return ast;
-        }
-
-        let [path, valExpr] = ast.refBody.split(':');
-        if(valExpr === undefined){
-            valExpr = path;
-            path = undefined;
-        }
-
-        let splittedPath;
-        if(path !== undefined){
-            splittedPath = path.split('/').map(dir => dir.split('&')).filter(e => e[0].length > 0);
-        }
-
-        ast.refBody = {
-            path: splittedPath,
-            valExpr
-        }
-
-        return ast;
-    }
-
     evaluate(referredBody, refTable, subs){
 
         let ast = this.toAST();
@@ -212,11 +173,15 @@ export default class RefString {
             if(res.note.length > 0){
                 this.type = 'WARN';
                 this.note = res.note.join('\n');
+            } else {
+                this.type = 'NORMAL';
+                this.note = '';
             }
 
         } else if (expr !== undefined) {
             if (!isNaN(parseFloat(expr))){
                 this.value = parseFloat(expr);
+                this.type = 'NORMAL';
             } else if (expr.match(/^[A-Z0-9]+$/g)){
                 let {value, type} = evalFunc(expr, subs);
                 this.value = value;
@@ -230,6 +195,8 @@ export default class RefString {
             this.value = '不能识别的表达式';
             this.type = 'ERROR';
         }
+
+        console.log(this.value, this.type, 'after eval');
 
         if(refName !== undefined){
             refTable[refName] = this.value;
