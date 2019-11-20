@@ -85,7 +85,6 @@ const calcVal = (expr, rec) => {
 
 const evalFunc = (expr, subs) => {
     if(expr === 'SUMSUB'){
-        console.log('SUMSUB', subs.map(e => e.get('value').value), subs);
         let value = subs.map(e => NaNto0(e.get('value').value))
         .reduce((acc, e) => acc+e, 0);
         return {value};
@@ -231,8 +230,6 @@ export default class RefString {
             this.value = '不能识别的表达式';
             this.type = 'ERROR';
         }
-
-        console.log(this.desc, this.value, this.type, this.note);
 
         if(refName !== undefined){
             refTable[refName] = this.value;
