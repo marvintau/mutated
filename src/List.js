@@ -51,4 +51,15 @@ export default class List extends Array{
     max(){
         return Math.max(...this);
     }
+
+    min() {
+        return Math.min(...this);
+    }
+
+    minMax(){
+        console.log(this);
+        let min = this.min(),
+            max = this.max();
+        return {min, max};
+    }
 }

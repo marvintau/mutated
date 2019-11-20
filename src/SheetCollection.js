@@ -101,8 +101,6 @@ export default class SheetCollection{
 
     fetchTableWorker(){
 
-        console.log(this.log, 'this log');
-
         if (this.fetchStack.length === 0){
             return;
         }
@@ -136,6 +134,11 @@ export default class SheetCollection{
             this.log(`[${projName}] 的 [${sheetSpec.desc}] 表是本地数据表，须先检查其所依赖的数据表`);
             let {referred} = sheetSpec,
                 allReferredReady = true;
+
+            if(sheetName in referred){
+                this.log(`在 [${sheetName}] 中发现了循环引用，一个数据表不能依赖自己。请召唤程序员`);
+                return;
+            }
 
             for (let refName in referred){
                 

@@ -39,10 +39,10 @@ export default class Cols {
     }
 
     copy(){
-        let cols = Object.assign({}, this.cols),
-            attr = Object.assign({}, this.attr),
-            subs = Body.from(this.subs);
-        return new Cols(cols, {head: this.head, subs, attr});
+        // let cols = Object.assign({}, this.cols),
+        //     attr = Object.assign({}, this.attr),
+        //     subs = Body.from(this.subs);
+        return new Cols(this);
     }
 
     set(key, value){

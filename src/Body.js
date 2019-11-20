@@ -24,12 +24,14 @@ export default class Body extends List {
                 }
                 listRef = destRec.subs;
             }
-            return destRec;
+            return {rec: destRec, list:listRef};
 
         } else {
             return this.find(e => e.get(key).valueOf() === matchValue)
         }
     }
+
+
 
     mapCol(key){
         return this.map(e => e.get(key));
@@ -179,8 +181,26 @@ export default class Body extends List {
     
     backTraverse(func){
         for (let i = 0; i < this.length; i++){
-            this[i].subs.backTraverse(func);
+            this[i].subs = this[i].subs.backTraverse(func);
             this[i] = func(this[i]);
+        }
+
+        return new Body(...this);
+    }
+
+    reach(breakCond, getFunc){
+        let ref = this;
+        while(ref.length > 0) {
+            if(breakCond(ref)) break;
+            ref = getFunc(ref).subs;
+        }
+        return ref;
+    }
+
+    reachPath(path){
+        let ref = this;
+        for (let elem of path){
+
         }
     }
 }

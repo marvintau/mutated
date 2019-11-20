@@ -6,4 +6,5 @@ export {default as Body} from './Body';
 
 export {default as Table} from './Table';
 export {default as Sheet} from './Sheet';
+export {default as WorkTable} from './WorkTable';
 export {default as SheetCollection} from './SheetCollection';
