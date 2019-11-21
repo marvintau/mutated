@@ -196,8 +196,6 @@ export default class RefString {
             this.type = 'ERROR';
         }
 
-        console.log(this.value, this.type, 'after eval');
-
         if(refName !== undefined){
             refTable[refName] = this.value;
         }
