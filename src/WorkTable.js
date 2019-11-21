@@ -47,6 +47,7 @@ export default class WorkTable {
             let rec = new Cols(worksheetData[i], {head: this.head});
             if(worksheetData[i].item.startsWith('#')){
                 rec.get('value').setDesc(worksheetData[i].item)
+                rec.attr.isTitle = true;
             }
     
             this.data.reach(breakCond(rec), ref => ref.last()).push(rec)
