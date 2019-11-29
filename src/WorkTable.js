@@ -16,6 +16,7 @@ const isSameTitleLevel = (recA, recB) => {
 }
 
 const breakCond = (rec) => (ref) => {
+    console.log(ref, 'breakCOns');
     let last = ref.last();
     return !isTitle(last) || isTitle(rec) && isSameTitleLevel(rec, last)
 }
@@ -49,7 +50,8 @@ export default class WorkTable {
                 rec.get('value').setDesc(worksheetData[i].item)
             }
     
-            this.data.reach(breakCond(rec), ref => ref.last()).push(rec)
+            let {list} = this.data.findBy('', {breakCond: breakCond(rec), getFunc: ref => ref.last()});
+            list.push(rec);
     
         }
         this.data;
@@ -61,7 +63,7 @@ export default class WorkTable {
             rec.get('value').evaluate(this.referred, refs, rec.subs);
             return rec.copy();
         })
-        console.log(refs, 'reftable')
+        // console.log(refs, 'reftable')
         return Body.from(this.data);
     }
 }

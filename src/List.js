@@ -2,6 +2,7 @@ export default class List extends Array{
 
     constructor(...args){
         super(...args);
+        this.ops = [];
     }
 
     /**
@@ -48,18 +49,18 @@ export default class List extends Array{
         return Object.fromEntries(this);
     }
 
-    max(){
-        return Math.max(...this);
+    max(func){
+        return Math.max(...((func === undefined) ? this : this.map(func)))
     }
 
-    min() {
-        return Math.min(...this);
+    min(func) {
+        return Math.min(...((func === undefined) ? this : this.map(func)))
     }
 
-    minMax(){
-        console.log(this);
-        let min = this.min(),
-            max = this.max();
-        return {min, max};
+    minMax(func){
+        return {
+            min: this.min(func),
+            max: this.max(func)
+        };
     }
 }

@@ -1,64 +1,95 @@
 import List from './List';
 import Tabs from './Tabs';
 
+const getRandSamples = (list, samples) => {
+    let indice = [];
+
+    while (indice.length < samples){
+        let newSample = parseInt((Math.random()*samples));
+        if(indice.indexOf(newSample) === -1) indice.push(newSample);
+    }
+    return Body.from(indice.map(e => list[e]));
+}
+
+const samplesWithinSum = (list, key, sumLim) => {
+    let newList = [], sum = 0;
+    
+    for (let item of list) {
+        let {cols} = item;
+        if(sum += cols[key] > sumLim) break;
+        newList.push(item);
+    }
+    
+    return newList;
+}
+
+const findSingle = (list, string) => ({
+    rec: list.find(e => e.get(key).valueOf() === string),
+    list: list
+})
+
+const isArrayOfString = (list) =>
+    Array.isArray(list) && list.every(e => typeof e === 'string');
+
+const iterateWithPathArray = (list, key, pathArray) => {
+
+    let listRef = list, destRec = undefined;
+    for (let elem of pathArray){
+        destRec = listRef.find(e => e.get(key).valueOf() === elem);
+        if (destRec === undefined){
+            break;
+        }
+        listRef = destRec.subs;
+    }
+    return {rec: destRec, list:listRef};
+}
+
+const reach = (list, {breakCond, getFunc}) => {
+    
+    if(breakCond === undefined || getFunc === undefined){
+        return {rec: undefined, list:undefined}
+    }
+
+    let listRef = list, descRec = undefined;
+    while(listRef.length > 0 && !(breakCond(listRef))){
+        descRec = getFunc(listRef),
+        listRef = descRec.subs;
+    }
+    return {rec: descRec, list: listRef};
+}
+
+const parseString = (str) => 
+    (typeof str === 'string' || str.constructor === String) && str.match(/^[0-9]+$/)
+    ? parseFloat(str) : str
+
 export default class Body extends List {
 
     constructor(...args){
         super(...args);
+        this.ops = [];
     }
 
-    findBy(key, matchValue){
-
-        if (Array.isArray(matchValue)){
-
-            if (matchValue.some(e => typeof e !== 'string')){
-                throw Error('findBy: found non-string value in path');
-            }
-
-            let listRef = this, destRec = undefined;
-            for (let elem of matchValue){
-                let trimmed = elem.trim();
-                destRec = listRef.find(e => e.get(key).valueOf() === trimmed);
-                if (destRec === undefined){
-                    break;
-                }
-                listRef = destRec.subs;
-            }
-            return {rec: destRec, list:listRef};
-
-        } else {
-            return this.find(e => e.get(key).valueOf() === matchValue)
-        }
-    }
-
-
-
-    mapCol(key){
-        return this.map(e => e.get(key));
+    findBy(key, pattern){    
+        return (typeof pattern === 'string')
+        ? findSingle(this, pattern)
+        : isArrayOfString(pattern)
+        ? iterateWithPathArray(this, key, pattern)
+        : reach(this, pattern)
     }
 
     isColSame(key){
-        return this.mapCol(key).every((v, i, a) => v.valueOf() == a[0]);
+        return this.map(e => e.get(key).valueOf()).every((v, i, a) => v == a[0]);
     }
 
     orderBy(key, isAscending=true){
+
+
         this.sort((prev, next) => {
-            let prevVal = prev.get(key),
-                nextVal = next.get(key);
+            let prevVal = parseString(prev.get(key)),
+                nextVal = parseString(next.get(key)),
+                order = isAscending ? 1 : -1
 
-            if(prevVal.constructor === String && prevVal.match(/^[0-9]+$/)){
-                prevVal = parseFloat(prevVal);
-            }
-
-            if(nextVal.constructor === String && nextVal.match(/^[0-9]+$/)){
-                nextVal = parseFloat(nextVal);
-            }
-
-            let order = isAscending ? 1 : -1
-
-            let res = (prevVal > nextVal) ? 1 : (prevVal < nextVal) ? -1 : 0;
-
-            return order * res;
+            return (prevVal > nextVal) ? order : (prevVal < nextVal) ? -order : 0;
         })
 
         return Body.from(this);
@@ -85,9 +116,7 @@ export default class Body extends List {
         
         let uniq = {};
         for (let i = 0; i < this.length; i++){
-
-            let actualKey = key.constructor === Function ? key(this[i]) : this[i].get(key);
-
+            let actualKey = (key.constructor === Function) ? key(this[i]) : this[i].get(key);
             uniq[actualKey] = this[i];
         }
 
@@ -103,13 +132,6 @@ export default class Body extends List {
         let children;
         for (children = layers.pop(); layers.length > 0; children = layers.pop()) {
             let parents = layers.pop();
-
-            // 如果是一个之前flatten过的List，那么此时的父层结点仍然会保存子层结点，
-            // 的引用。这是flatten本身的设计。如果反复添加子层结点肯定会造成错误。
-            // 所以此处我们重设parents的subs来确保安全。
-            // 
-            // 需要注意这个操作并不会影响到叶子结点，因此如果叶子结点中保存的是明细
-            // 表也不会受到影响。这符合我们之前的叶子结点只保存明细表的约定。
 
             for (let i = 0; i < parents.length; i++)
                 if(Array.isArray(parents[i].subs) || parents[i].subs === undefined){
@@ -170,8 +192,7 @@ export default class Body extends List {
         return res.map(e => List.from(e)); 
     }
 
-    copy(){
-        
+    copy(){        
         for (let i = 0; i < this.length; i++){
             this[i] = this[i].copy();
             this[i].subs = this[i].subs.copy();
@@ -188,19 +209,42 @@ export default class Body extends List {
         return new Body(...this);
     }
 
-    reach(breakCond, getFunc){
-        let ref = this;
-        while(ref.length > 0) {
-            if(breakCond(ref)) break;
-            ref = getFunc(ref).subs;
-        }
-        return ref;
+    addOp({type, args}){
+        this.ops.push({type, args});
     }
 
-    reachPath(path){
-        let ref = this;
-        for (let elem of path){
+    removeOp(index){
+        (index === undefined)
+        ? this.ops.pop()
+        : this.ops.splice(index, 1)
+    }
 
+    applyOp(){
+
+        const sort = ({key, order}) => {
+            return this.orderBy(key, order);
+        }
+
+        const filter = ({method, key, arg}) => {
+            switch(method){
+                case '>=':
+                case '<=':
+                    return this.filter(({cols}) => eval(`${cols[key]}${method}(${arg})`));
+                case 'rand':
+                    return getRandSamples(this, arg);
+                case '&>=':
+                case '&<=':
+                    return samplesWithinSum(this, arg);
+            }
+        }
+
+        for (let {type, args} of this.ops){
+            newBody = (type === 'sort')
+            ? sort(args)
+            : (type === 'filter')
+            ? filter(args)
+            : newList;
         }
     }
+
 }
