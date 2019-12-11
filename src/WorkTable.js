@@ -48,6 +48,7 @@ export default class WorkTable {
             let rec = new Cols(worksheetData[i], {head: this.head});
             if(worksheetData[i].item.startsWith('#')){
                 rec.get('value').setDesc(worksheetData[i].item)
+                rec.attr.isTitle = true;
             }
     
             let {list} = this.data.findBy('', {breakCond: breakCond(rec), getFunc: ref => ref.last()});
