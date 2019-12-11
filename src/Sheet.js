@@ -9,7 +9,9 @@ export default class Sheet {
         importProc,
         exportProc,
         forceReload=false,
-    desc='无描述'}){
+        desc='无描述',
+        hidden=false
+    }){
 
         // 表预设的描述信息
         this.referred = referred;
@@ -17,6 +19,7 @@ export default class Sheet {
         this.exportProc = exportProc;
         this.type = type;
         this.desc = desc;
+        this.hidden = hidden;
 
         // 提供控制选项
         this.isSavable = isSavable;
