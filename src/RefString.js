@@ -103,6 +103,7 @@ const evalFunc = (expr, subs) => {
 }
 
 const evalExpr = (expr, refs) => {
+    console.log(expr, 'expr to be evaled');
     let value, type;
     try {
         value = eval(expr.replace(/\$/g, 'refs.'));
@@ -110,6 +111,10 @@ const evalExpr = (expr, refs) => {
         if(typeof value === 'boolean'){
             type === 'VALID'
         }
+        if(typeof value === 'object'){
+            throw Error(`Value cannot be object. You likely created a regex`);
+        }
+        console.log(value, 'evaled');
     } catch (err) {
         value = '不能识别的表达式';
         type = 'ERROR';
