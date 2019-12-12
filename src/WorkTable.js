@@ -16,7 +16,6 @@ const isSameTitleLevel = (recA, recB) => {
 }
 
 const breakCond = (rec) => (ref) => {
-    console.log(ref, 'breakCOns');
     let last = ref.last();
     return !isTitle(last) || isTitle(rec) && isSameTitleLevel(rec, last)
 }
