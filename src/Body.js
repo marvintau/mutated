@@ -127,7 +127,7 @@ export default class Body extends List {
 
         // grip使用了layerFunc，将列表分为几代（Generation）
         let layers = this.orderBy(colKey).grip((rec) => rec.get(colKey).length).vals();
-
+        console.log(layers, 'cascade');
         // 每相邻的两代之间两两比较，如果没有找到父辈的孩子会被弃掉。
         let children;
         for (children = layers.pop(); layers.length > 0; children = layers.pop()) {
@@ -138,11 +138,13 @@ export default class Body extends List {
                     parents[i].subs = new Body(0);
                 }
 
+                
             while (children.length > 0) {
                 let child = children.pop();
                 for (let i = 0; i < parents.length; i++){
                     let parent = parents[i];
                     
+                    // console.log(child.get(colKey).valueOf(), (parent.get(colKey).valueOf()))
                     if (child.get(colKey).startsWith(parent.get(colKey))) try{
                         parent.subs.push(child)
                     }catch{
