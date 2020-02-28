@@ -105,13 +105,24 @@ const evalFunc = (expr, subs) => {
 const evalExpr = (expr, refs) => {
     let value, type;
     try {
-        value = eval(expr.replace(/\$/g, 'refs.'));
-        type = 'NORMAL';
-        if(typeof value === 'boolean'){
-            type === 'VALID'
-        }
-        if(typeof value === 'object'){
-            throw Error(`Value cannot be object. You likely created a regex`);
+        if(expr.includes('===')){
+            let [sideA, sideB] = expr.replace(/\$/g, '').split('===').map(e => refs[e]);
+            if (Math.abs(sideA - sideB) > 10e-4){
+                value = Math.abs(sideA - sideB);
+                type = 'WARN';
+            } else {
+                value = '通过';
+                type = 'VALID';
+            }
+        } else {
+            value = eval(expr.replace(/\$/g, 'refs.'));
+            type = 'NORMAL';
+            if(typeof value === 'boolean'){
+                type = 'VALID'
+            }
+            if(typeof value === 'object'){
+                throw Error(`Value cannot be object. You likely created a regex`);
+            }
         }
     } catch (err) {
         value = '不能识别的表达式';
