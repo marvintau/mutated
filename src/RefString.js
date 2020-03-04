@@ -132,6 +132,20 @@ const evalExpr = (expr, refs) => {
     return {value, type};
 }
 
+const findEquiv = (path, equivs, key, referredBody) => {
+
+    const candidatePaths = outer(path.map(seg => (seg in equivs) ? equivs[seg] : [seg] ));
+
+    for (let newPath of candidatePaths){
+        const {rec, list} = referredBody.findBy(key, newPath);
+        if (rec !== undefined){
+            return {rec, list, path:newPath}
+        }
+    }
+
+    return {rec: undefined, list:[], path: undefined}
+}
+
 export default class RefString {
     constructor(arg=''){
 
@@ -164,7 +178,7 @@ export default class RefString {
         return matchRef(this.string.replace(/\s+/g, ''))
     }
 
-    evaluate(referredBody, refTable, subs){
+    evaluate(referredBody, refTable, subs, equivs){
 
         let ast = this.toAST();
 
@@ -173,17 +187,29 @@ export default class RefString {
         if(pathBody){
             let res = outer(pathBody)
                 .map(path => {
-                    let {rec} = referredBody.findBy('ccode_name', path),
-                        val = rec ? calcVal(refValue, rec) : undefined;
+                    let {rec} = referredBody.findBy('ccode_name', path);
 
-                    return { path: path.join('/')+":"+refValue, val}
+                    let note;
+                    if (rec === undefined){
+                        res = findEquiv(path, equivs, 'ccode_name', referredBody);
+                        rec = res.rec;
+                        note = res.path ? res.path : '';
+                    }
+                    note = note === undefined ? '' : note;
+
+                    // console.log(rec, note, 'findequiv');
+                    let val = rec ? calcVal(refValue, rec) : undefined;
+
+                    return { path: path.join('/')+":"+refValue, val, note}
                 })
-                .reduce(({note, value}, {path, val}) => {
-                    return val === undefined ? {note:[path, ...note], value} : {note, value:value+val}
+                .reduce(({note:noteAll, value}, {path, val, note}) => {
+                    return val === undefined ? {note:[`${path} ${note}`, ...noteAll], value} : {note:noteAll, value:value+val}
                 }, {note:[], value: 0});
 
             this.value = res.value;
             
+            console.log(res.note, 'note');
+
             if(res.note.length > 0){
                 this.type = 'WARN';
                 this.note = res.note.join('\n');

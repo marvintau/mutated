@@ -41,6 +41,10 @@ export default class WorkTable {
         this.attr = attr
     }
 
+    addEquivNames(equivNames){
+        this.equivNames = equivNames;
+    }
+
     parse(worksheetData){
 
         for (let i = 0; i < worksheetData.length; i++){
@@ -60,7 +64,7 @@ export default class WorkTable {
     evaluate(){
         let refs = {};
         this.data.backTraverse((rec) => {
-            rec.get('value').evaluate(this.referred, refs, rec.subs);
+            rec.get('value').evaluate(this.referred, refs, rec.subs, this.equivNames);
             return rec.copy();
         })
         // console.log(refs, 'reftable')
